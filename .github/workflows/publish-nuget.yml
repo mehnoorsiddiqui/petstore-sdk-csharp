@@ -1,0 +1,97 @@
+name: Publish to NuGet
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "Directory.Build.props"
+      - "Directory.Packages.props"
+      - "*.slnx"
+      - "README.md"
+      - ".github/nuget/**"
+      - ".github/workflows/publish-nuget.yml"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Package version to publish (e.g. 1.2.0). Leave empty to auto-generate."
+        required: false
+        type: string
+
+# Never run two publishes at once; queue them instead of cancelling.
+concurrency:
+  group: publish-nuget
+  cancel-in-progress: false
+
+env:
+  # Bump this when you want a new major/minor line. The patch number is the workflow run number.
+  VERSION_PREFIX: "1.0"
+  PROJECT: src/SwaggerPetstoreOpenApi310/SwaggerPetstoreOpenApi310.csproj
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # push the release tag
+      id-token: write   # NuGet trusted publishing (OIDC)
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Compute version
+        id: version
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${VERSION_PREFIX}.${{ github.run_number }}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Publishing version $VERSION"
+
+      - name: Restore
+        run: dotnet restore "$PROJECT"
+
+      - name: Build
+        run: >
+          dotnet build "$PROJECT" -c Release --no-restore
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:CustomAfterMicrosoftCommonTargets=${{ github.workspace }}/.github/nuget/Package.targets
+
+      - name: Pack
+        run: >
+          dotnet pack "$PROJECT" -c Release --no-build -o artifacts
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:CustomAfterMicrosoftCommonTargets=${{ github.workspace }}/.github/nuget/Package.targets
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: artifacts/*.nupkg
+
+      - name: NuGet login (OIDC)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push to NuGet
+        run: >
+          dotnet nuget push "artifacts/*.nupkg"
+          --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: Tag release
+        shell: bash
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          git tag "$TAG"
+          git push origin "$TAG"

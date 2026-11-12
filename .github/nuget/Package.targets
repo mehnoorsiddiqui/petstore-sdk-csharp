@@ -1,0 +1,28 @@
+<Project>
+
+    <!--
+        NuGet package metadata for the SDK.
+
+        This file lives outside the generated SDK tree so that regenerating the SDK
+        does not wipe it. The publish workflow injects it into the build with
+        -p:CustomAfterMicrosoftCommonTargets=<path to this file>.
+    -->
+
+    <PropertyGroup>
+        <PackageId>SwaggerPetstoreOpenApi310</PackageId>
+        <Authors>mehnoorsiddiqui</Authors>
+        <Description>.NET SDK for the Swagger Petstore - OpenAPI 3.1.0 REST API.</Description>
+        <PackageTags>petstore;swagger;openapi;sdk;rest;api-client</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/mehnoorsiddiqui/petstore-sdk-csharp</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/mehnoorsiddiqui/petstore-sdk-csharp</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)../../README.md" Pack="true" PackagePath="/" Visible="false" />
+    </ItemGroup>
+
+</Project>
