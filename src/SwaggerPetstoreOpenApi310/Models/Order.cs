@@ -17,7 +17,7 @@ public record Order
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("quantity")]
-    public int? Quantity { get; init; }
+    public long? Quantity { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("shipDate")]

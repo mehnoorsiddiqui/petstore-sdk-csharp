@@ -12,7 +12,7 @@ public sealed record PlaceOrderRequest
 
     public long? PetId { get; init; }
 
-    public int? Quantity { get; init; }
+    public long? Quantity { get; init; }
 
     public DateTimeOffset? ShipDate { get; init; }
 

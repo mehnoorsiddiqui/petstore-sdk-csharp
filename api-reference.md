@@ -757,7 +757,7 @@ Place a new order in the store.
 ```csharp
 try
 {
-    var response = await client.Store.PlaceOrder(new PlaceOrderRequest { Id = 10L, PetId = 198772L, Quantity = 7 });
+    var response = await client.Store.PlaceOrder(new PlaceOrderRequest { Id = 10L, PetId = 198772L, Quantity = 7L });
     // TODO: Handle 'response' of type Order
 }
 catch (ApiException<PlaceOrderError> ex)
